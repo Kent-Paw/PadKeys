@@ -61,6 +61,20 @@
 > **签名变更提醒**：正式签名与早期 debug 签名互斥，已装 debug 版的机器必须先 `adb uninstall com.liangxin.btkeyboard` 再装正式版。
 > 安装后首次启动请让 App 自己弹权限窗并点「允许」；若用 adb 批量授权，还需要 `appops set --uid … BLUETOOTH_CONNECT allow`，否则蓝牙 HID 会注册失败（详见开发记录「踩坑 3」）。
 
+## 自动构建（GitHub Actions）
+
+仓库已配置 `.github/workflows/build.yml`，无需本地环境也能出包：
+
+| 触发方式 | 结果 |
+|---|---|
+| 推送到 `main` | 构建并在 Actions 页面提供 `PadKeys-apk` 产物（保留在 run 的 Artifacts 里） |
+| 打 `v*` 标签（如 `git tag v1.1.3 && git push origin v1.1.3`） | 构建 + 自动创建 Release 并挂上 APK |
+| Actions 页面「Run workflow」手动 | 同上，产物在 Artifacts |
+
+签名策略：若仓库配置了 secret `PADKEYS_KEYSTORE_B64`（正式签名密钥的 base64），CI 会还原 `keys/padkeys-release.jks` 并使用**正式签名**；否则回退 debug 签名。私钥只存在 secret 里，不进仓库、不出现在日志。
+
+`build.sh` 的 SDK / JDK 路径支持环境变量覆盖（`ANDROID_SDK_ROOT` / `ANDROID_HOME` / `JAVA_HOME` / `BT_DIR`），所以同一套脚本在 macOS 本地和 Linux runner 上都能跑。
+
 ## 构建（无需 Android Studio / Gradle）
 
 Mac 上只要有 JDK17 + Android SDK（platforms/android-34 + build-tools/34.0.0）即可：
