@@ -3,10 +3,17 @@
 set -e
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-SDK="$HOME/Library/Android/sdk"
-BT="$SDK/build-tools/34.0.0"
-AJAR="$SDK/platforms/android-34/android.jar"
-export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+# SDK / JDK 位置：优先用环境变量（CI 里由 setup-android / setup-java 提供），否则回退到本机默认路径
+SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/Library/Android/sdk}}"
+BT="${BT_DIR:-$SDK/build-tools/34.0.0}"
+AJAR="${AJAR:-$SDK/platforms/android-34/android.jar}"
+if [ -z "$JAVA_HOME" ]; then
+  if [ -d /opt/homebrew/opt/openjdk@17 ]; then
+    export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+  elif [ -d /usr/lib/jvm/java-17-openjdk-amd64 ]; then
+    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+  fi
+fi
 JAVA="$JAVA_HOME/bin/java"
 JAVAC="$JAVA_HOME/bin/javac"
 
